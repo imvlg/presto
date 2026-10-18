@@ -50,6 +50,7 @@ export interface LiveSession {
 
 export interface Settings {
   soundEnabled: boolean
+  notificationsEnabled: boolean
   volume: number
   flowReminderMinutes: number
   longFocusReminderMinutes: number
@@ -59,6 +60,7 @@ export interface Settings {
 
 export const defaultSettings: Settings = {
   soundEnabled: true,
+  notificationsEnabled: false,
   volume: 0.35,
   flowReminderMinutes: 60,
   longFocusReminderMinutes: 150,

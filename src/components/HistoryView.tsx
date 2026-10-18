@@ -8,7 +8,6 @@ export function HistoryView({ sessions, onDelete }: Props) {
   const [open, setOpen] = useState<string | null>(null)
   const [confirming, setConfirming] = useState<string | null>(null)
   return <div className="screen-content">
-    <div className="page-heading"><span className="eyebrow">HISTORY</span></div>
     <div className="panel history-panel"><div className="history-head"><span>ACTIVITY / DATE</span><span>FOCUS</span><span>MODE</span><span></span></div>
       {sessions.length ? sessions.map(item => <div className="history-entry" key={item.id}>
         <button className="history-row" aria-expanded={open === item.id} onClick={() => setOpen(open === item.id ? null : item.id)}>

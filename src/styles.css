@@ -239,3 +239,14 @@ button:focus-visible,input:focus-visible{outline-color:var(--lime)}
 .stepper-buttons button:focus-visible{outline:2px solid var(--lime);outline-offset:-2px}
 .stepper-buttons button:disabled{opacity:.35}
 @media(max-width:390px){.number-setting{align-items:flex-start;gap:8px;flex-wrap:wrap}.number-setting-control{margin-left:auto}}
+
+/* Keep the content aligned after removing repeated page titles. */
+.screen-content{padding-top:34px}
+.drawer-head{margin-bottom:22px}
+.drawer-head h2{margin:0}
+.event-card h3{margin:0 0 14px}
+.toggle-row input:checked{box-shadow:0 0 14px #b5ff5938}
+.toggle-row input:checked:after{box-shadow:0 0 10px #b5ff5970}
+.trend-bar{min-height:0}
+@media(min-width:741px) and (max-width:980px){.distribution-panel{display:block}}
+@media(max-width:740px){.screen-content{padding-top:23px}}

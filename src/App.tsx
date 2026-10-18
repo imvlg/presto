@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { Activity, BarChart3, Clock3, Download, History, Menu, Settings2, Timer, Upload, Volume2, VolumeX, X } from 'lucide-react'
+import { Activity, BarChart3, Bell, BellOff, Clock3, Download, History, Menu, Settings2, Timer, Upload, Volume2, VolumeX, X } from 'lucide-react'
 import { ActivityView } from './components/ActivityView'
 import { HistoryView } from './components/HistoryView'
 import { MetronomeMark } from './components/MetronomeMark'
@@ -7,6 +7,7 @@ import { NumberStepper } from './components/NumberStepper'
 import { StatisticsView } from './components/StatisticsView'
 import { TimerView } from './components/TimerView'
 import { cleanActivity, defaultSettings, normalizeActivity, type LiveSession, type Mode, type Session, type Settings } from './lib/model'
+import { notificationsAvailable, showSystemNotification } from './lib/notifications'
 import { beginBreak, beginFocus, continueFocus, createLive, displayed, finish, freezeForRecovery, pause, RECOVERY_GAP_MS, resume } from './lib/timer'
 import { deleteSession, exportBackup, importBackup, loadLive, loadSessions, loadSettings, saveLive, saveSession, saveSettings } from './lib/storage'
 import { playSound } from './lib/sound'
@@ -29,6 +30,7 @@ export default function App() {
   const [toast, setToast] = useState('')
   const [sessions, setSessions] = useState<Session[]>([])
   const [settings, setSettings] = useState<Settings>(defaultSettings)
+  const [notificationPermission, setNotificationPermission] = useState<NotificationPermission | 'unsupported'>(() => notificationsAvailable() ? Notification.permission : 'unsupported')
   const [live, setLive] = useState<LiveSession | null>(null)
   const [recovery, setRecovery] = useState(false)
   const [completed, setCompleted] = useState<Session | null>(null)
@@ -38,7 +40,7 @@ export default function App() {
   const fileRef = useRef<HTMLInputElement>(null)
   const liveRef = useRef<LiveSession | null>(null)
   const seenRef = useRef(Date.now())
-  const dueRef = useRef({ focus: '', break: '' })
+  const dueRef = useRef({ focus: '', break: '', reminder: '' })
 
   const announce = (message: string) => { setToast(message); window.setTimeout(() => setToast(''), 4500) }
   const report = (message: string) => { setError(message); window.setTimeout(() => setError(''), 7000) }
@@ -95,8 +97,25 @@ export default function App() {
     const view = displayed(live, now)
     const focusKey = `${live.id}:${live.focusIntervalStartMs}`
     const breakKey = `${live.id}:${live.breakIntervalStartMs}`
-    if (view.focusDue && dueRef.current.focus !== focusKey) { playSound('focusDone', settings); dueRef.current.focus = focusKey }
-    if (view.breakDue && dueRef.current.break !== breakKey) { playSound('breakDone', settings); dueRef.current.break = breakKey }
+    if (view.focusDue && dueRef.current.focus !== focusKey) {
+      playSound('focusDone', settings)
+      if (settings.notificationsEnabled) void showSystemNotification('Focus complete', 'Time for a break.', focusKey)
+      dueRef.current.focus = focusKey
+    }
+    if (view.breakDue && dueRef.current.break !== breakKey) {
+      playSound('breakDone', settings)
+      if (settings.notificationsEnabled) void showSystemNotification('Break complete', 'Ready to focus again.', breakKey)
+      dueRef.current.break = breakKey
+    }
+    const reminderMinutes = live.mode === 'flow' ? settings.flowReminderMinutes : settings.longFocusReminderMinutes
+    const reminderKey = `${live.id}:${live.focusIntervalStartMs}:${live.reminderDismissedAt}`
+    if (live.phase === 'focusing' && !view.focusDue && reminderMinutes > 0 &&
+      view.focusIntervalMs >= reminderMinutes * 60_000 &&
+      (!live.reminderDismissedAt || now - live.reminderDismissedAt >= 60 * 60_000) &&
+      dueRef.current.reminder !== reminderKey) {
+      if (settings.notificationsEnabled) void showSystemNotification('Focus reminder', 'Consider taking a break.', reminderKey)
+      dueRef.current.reminder = reminderKey
+    }
   }, [live, now, recovery, settings])
 
   const updateSettings = (changes: Partial<Settings>) => {
@@ -108,6 +127,21 @@ export default function App() {
     setSettings(next)
     void saveSettings(next).catch(() => report('Settings could not be saved.'))
   }
+
+  const setNotifications = async (enabled: boolean) => {
+    if (!enabled) { updateSettings({ notificationsEnabled: false }); return }
+    if (!notificationsAvailable()) { report('Notifications are unavailable here. On iPhone, add Presto to the Home Screen first.'); return }
+    try {
+      const permission = Notification.permission === 'granted' ? 'granted' : await Notification.requestPermission()
+      setNotificationPermission(permission)
+      if (permission === 'granted') updateSettings({ notificationsEnabled: true })
+      else report('Notifications were not enabled. Check your browser or device settings.')
+    } catch { report('Notifications are unavailable in this browser.') }
+  }
+
+  useEffect(() => {
+    if (settingsOpen) setNotificationPermission(notificationsAvailable() ? Notification.permission : 'unsupported')
+  }, [settingsOpen])
 
   const start = () => {
     if (liveRef.current || !cleanActivity(draft)) return
@@ -169,16 +203,17 @@ export default function App() {
       <div className="sidebar-bottom"><button className="settings-link" onClick={() => { setSettingsOpen(true); setMenuOpen(false) }}><Settings2 size={18}/> Settings</button></div>
     </aside>
     {menuOpen && <button className="mobile-scrim" aria-label="Close navigation" onClick={() => setMenuOpen(false)}/>}
-    <div className="workspace"><header className="topbar"><button className="mobile-menu icon-button" aria-label="Open navigation" onClick={() => setMenuOpen(true)}><Menu size={22}/></button><div className="topbar-right"><span className="topbar-clock"><Clock3 size={14}/> {new Date(now).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}</span><button className="topbar-settings icon-button" aria-label="Open settings" onClick={() => setSettingsOpen(true)}><Settings2 size={18}/></button></div></header>
+    <div className="workspace"><header className="topbar"><button className="mobile-menu icon-button" aria-label="Open navigation" onClick={() => setMenuOpen(true)}><Menu size={22}/></button><span className="topbar-clock"><Clock3 size={14}/> {new Date(now).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}</span></header>
       <main>{screen === 'timer' && <TimerView draft={draft} setDraft={setDraft} mode={mode} setMode={setMode} settings={settings} updateSettings={updateSettings} live={live} completed={completed} now={now} onStart={start} onPause={() => live && commitLive(pause(live))} onResume={() => live && commitLive(resume(live))} onBreak={long => live && commitLive(beginBreak(live, Date.now(), long))} onFocus={() => live && commitLive(beginFocus(live))} onContinue={() => live && commitLive(continueFocus(live))} onFinish={() => void handleFinish()} onNew={() => { setDraft(completed?.activity ?? ''); setCompleted(null) }} onHome={() => { setCompleted(null); setDraft('') }} onDismissReminder={() => live && commitLive({ ...live, reminderDismissedAt: Date.now() })}/>}
         {screen === 'activity' && <ActivityView sessions={sessions} onRename={rename}/>}
         {screen === 'statistics' && <StatisticsView sessions={sessions}/>}
         {screen === 'history' && <HistoryView sessions={sessions} onDelete={remove}/>}</main>
     </div>
-    {settingsOpen && <div className="modal-backdrop" onMouseDown={event => { if (event.target === event.currentTarget) setSettingsOpen(false) }}><section className="settings-drawer" role="dialog" aria-modal="true" aria-labelledby="settings-title"><div className="drawer-head"><span className="eyebrow">PREFERENCES</span><button className="icon-button" aria-label="Close settings" onClick={() => setSettingsOpen(false)}><X size={20}/></button></div><h2 id="settings-title">Settings</h2><p>Saved on this device.</p>
+    {settingsOpen && <div className="modal-backdrop" onMouseDown={event => { if (event.target === event.currentTarget) setSettingsOpen(false) }}><section className="settings-drawer" role="dialog" aria-modal="true" aria-labelledby="settings-title"><div className="drawer-head"><h2 id="settings-title">Settings</h2><button className="icon-button" aria-label="Close settings" onClick={() => setSettingsOpen(false)}><X size={20}/></button></div>
       <div className="setting-group"><span className="eyebrow">SOUND</span><label className="toggle-row"><span>{settings.soundEnabled ? <Volume2 size={19}/> : <VolumeX size={19}/>} Session sounds</span><input type="checkbox" checked={settings.soundEnabled} onChange={event => updateSettings({ soundEnabled: event.target.checked })}/></label><label className="range-label">Volume <span>{Math.round(settings.volume * 100)}%</span><input type="range" min="0" max="1" step="0.05" value={settings.volume} disabled={!settings.soundEnabled} onChange={event => updateSettings({ volume: Number(event.target.value) })}/></label></div>
-      <div className="setting-group"><span className="eyebrow">GENTLE REMINDERS</span><div className="number-setting"><label htmlFor="flow-reminder">Flow reminder</label><div className="number-setting-control"><NumberStepper id="flow-reminder" label="Flow reminder minutes" value={settings.flowReminderMinutes} min={0} max={240} onChange={value => updateSettings({ flowReminderMinutes: value })}/><span>min</span></div></div><div className="number-setting"><label htmlFor="long-focus-reminder">Long focus reminder</label><div className="number-setting-control"><NumberStepper id="long-focus-reminder" label="Long focus reminder minutes" value={settings.longFocusReminderMinutes} min={0} max={480} onChange={value => updateSettings({ longFocusReminderMinutes: value })}/><span>min</span></div></div><small>Set to 0 to turn a reminder off.</small></div>
-      <div className="setting-group"><span className="eyebrow">YOUR DATA</span><button className="data-action" onClick={() => void exportBackup(sessions)}><Download size={18}/> Export JSON backup <span>↗</span></button><button className="data-action" onClick={() => fileRef.current?.click()}><Upload size={18}/> Import JSON backup <span>↗</span></button><input ref={fileRef} type="file" accept=".json,application/json" className="sr-only" onChange={event => void importFile(event.target.files?.[0])}/><small>Import adds sessions with new IDs and skips duplicates.</small></div>
+      <div className="setting-group"><span className="eyebrow">NOTIFICATIONS</span><label className="toggle-row"><span>{settings.notificationsEnabled && notificationPermission === 'granted' ? <Bell size={19}/> : <BellOff size={19}/>} System alerts</span><input type="checkbox" checked={settings.notificationsEnabled && notificationPermission === 'granted'} onChange={event => void setNotifications(event.target.checked)}/></label><small>{notificationPermission === 'denied' ? 'Blocked in browser settings.' : notificationPermission === 'unsupported' ? 'On iPhone, add Presto to the Home Screen first.' : 'While Presto is active. On iPhone, add it to the Home Screen.'}</small></div>
+      <div className="setting-group"><span className="eyebrow">REMINDERS</span><div className="number-setting"><label htmlFor="flow-reminder">Flow</label><div className="number-setting-control"><NumberStepper id="flow-reminder" label="Flow reminder minutes" value={settings.flowReminderMinutes} min={0} max={240} onChange={value => updateSettings({ flowReminderMinutes: value })}/><span>min</span></div></div><div className="number-setting"><label htmlFor="long-focus-reminder">Long focus</label><div className="number-setting-control"><NumberStepper id="long-focus-reminder" label="Long focus reminder minutes" value={settings.longFocusReminderMinutes} min={0} max={480} onChange={value => updateSettings({ longFocusReminderMinutes: value })}/><span>min</span></div></div><small>0 = off</small></div>
+      <div className="setting-group"><span className="eyebrow">YOUR DATA</span><button className="data-action" onClick={() => void exportBackup(sessions)}><Download size={18}/> Export JSON backup</button><button className="data-action" onClick={() => fileRef.current?.click()}><Upload size={18}/> Import JSON backup</button><input ref={fileRef} type="file" accept=".json,application/json" className="sr-only" onChange={event => void importFile(event.target.files?.[0])}/></div>
       </section></div>}
     {recovery && live && <div className="modal-backdrop"><section className="recovery-modal" role="alertdialog" aria-modal="true" aria-labelledby="recovery-title"><span className="eyebrow">SESSION RECOVERY</span><h2 id="recovery-title">Welcome back.</h2><p>Your session was away for a while. We stopped counting at the last time Presto was active, so no extra focus time was added.</p><div className="recovery-summary"><strong>{live.activity}</strong><span>{new Date(live.lastSeenAt).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })} · last active</span></div><button className="button primary" onClick={() => { const current = Date.now(); const next = { ...live, phaseStartedAt: current, lastSeenAt: current, awayMs: live.awayMs + Math.max(0, current - live.phaseStartedAt) }; setRecovery(false); commitLive(next); seenRef.current = current }}>Resume from here</button><button className="button subtle" onClick={() => void handleFinish(live.phaseStartedAt)}>Finish at last active time</button><button className="text-button danger" onClick={() => { commitLive(null); setRecovery(false); announce('Interrupted session discarded.') }}>Discard session</button></section></div>}
     {(error || toast) && <div className={`toast ${error ? 'error-toast' : ''}`} role="status">{error || toast}</div>}

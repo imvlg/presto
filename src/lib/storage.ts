@@ -76,6 +76,7 @@ export async function loadSettings(): Promise<Settings> {
   const merged = { ...defaultSettings, ...stored }
   return {
     soundEnabled: Boolean(merged.soundEnabled),
+    notificationsEnabled: Boolean(merged.notificationsEnabled),
     volume: Number.isFinite(merged.volume) ? Math.min(1, Math.max(0, merged.volume)) : defaultSettings.volume,
     flowReminderMinutes: clampMinutes(merged.flowReminderMinutes, 0, 240),
     longFocusReminderMinutes: clampMinutes(merged.longFocusReminderMinutes, 0, 480),

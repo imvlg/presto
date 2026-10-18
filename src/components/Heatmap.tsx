@@ -28,7 +28,7 @@ export function Heatmap({ sessions, activity }: Props) {
 
   return <div className="heatmap-wrap">
     <div className="heatmap-heading">
-      <div><span className="eyebrow">ACTIVITY MAP / {year}</span><h3>{formatCompact(yearTotal)} recorded</h3></div>
+      <div><span className="eyebrow">FOCUS MAP</span><h3>{formatCompact(yearTotal)} recorded</h3></div>
       <div className="heatmap-year-controls">
         <button className="icon-button" aria-label="Previous year" onClick={() => setYear(year - 1)}><ChevronLeft size={17}/></button>
         <span>{year}</span>

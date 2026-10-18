@@ -38,5 +38,12 @@ self.addEventListener('fetch', event => {
     return response;
   })));
 });
+self.addEventListener('notificationclick', event => {
+  event.notification.close();
+  event.waitUntil(clients.matchAll({ type: 'window', includeUncontrolled: true }).then(windows => {
+    const existing = windows.find(client => client.url.startsWith(self.registration.scope));
+    return existing ? existing.focus() : clients.openWindow('./');
+  }));
+});
 `
 await writeFile(join(root, 'sw.js'), source)

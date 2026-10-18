@@ -1,6 +1,6 @@
 import { ArrowRight, Pause, Play, RotateCcw, SkipForward, Square } from 'lucide-react'
 import { displayed } from '../lib/timer'
-import { formatCompact, formatDuration, modeDurations, modeNames, type LiveSession, type Mode, type Session, type Settings } from '../lib/model'
+import { formatCompact, formatDuration, modeDurations, type LiveSession, type Mode, type Session, type Settings } from '../lib/model'
 import { NumberStepper } from './NumberStepper'
 
 interface Props {
@@ -45,7 +45,6 @@ export function TimerView(props: Props) {
   </div>
 
   return <div className="screen-content timer-screen">
-    <div className="page-heading timer-heading"><span className="eyebrow">FOCUS TIMER</span></div>
     <div className="timer-layout">
       <div className="timer-main panel">
         <div className="timer-topline"><span className="eyebrow">ACTIVITY</span></div>
@@ -53,13 +52,13 @@ export function TimerView(props: Props) {
         <input id="activity-name" className="activity-input" placeholder="What are you doing?" value={live ? live.activity : draft} onChange={event => setDraft(event.target.value)} disabled={Boolean(live)} maxLength={80} autoComplete="off" onKeyDown={event => { if (event.key === 'Enter' && !live && draft.trim()) props.onStart() }}/>
         {!live && <><div className="mode-heading"><span className="eyebrow">MODE</span></div><div className="mode-grid">{modes.map(item => <button key={item.id} className={`mode-card ${mode === item.id ? 'selected' : ''}`} onClick={() => setMode(item.id)} aria-pressed={mode === item.id}><strong>{item.title}</strong><small>{item.detail}</small></button>)}</div>{mode === 'custom' && <div className="custom-durations"><div className="custom-duration"><label htmlFor="custom-focus">Focus</label><NumberStepper id="custom-focus" label="Focus minutes" value={settings.customFocusMinutes} min={1} max={240} onChange={value => updateSettings({ customFocusMinutes: value })}/><span>min</span></div><div className="custom-duration"><label htmlFor="custom-break">Break</label><NumberStepper id="custom-break" label="Break minutes" value={settings.customBreakMinutes} min={1} max={90} onChange={value => updateSettings({ customBreakMinutes: value })}/><span>min</span></div></div>}</>}
         <div className={`timer-stage ${live ? 'is-live' : ''} ${inBreak ? 'is-break' : ''}`}>
-          <div className="timer-stage-header"><span className="phase-indicator" aria-live="polite"><i/>{phaseLabel}</span><span className="timer-index">{modeNames[live?.mode ?? mode].toUpperCase()}</span></div>
+          <div className="timer-stage-header"><span className="phase-indicator" aria-live="polite"><i/>{phaseLabel}</span></div>
           <div className="timer-numbers" aria-live="off">{formatDuration(timerValue, live?.mode === 'flow' || timerValue >= 60 * 60_000)}</div>
           <div className="timer-stage-footer"><span>{live?.mode === 'flow' ? 'ELAPSED' : inBreak ? 'BREAK REMAINING' : 'FOCUS REMAINING'}</span>{live && <span>{formatCompact(current!.focusMs)} FOCUSED</span>}</div>
           <div className="progress-track" role="progressbar" aria-label={`${inBreak ? 'Break' : 'Focus'} interval progress`} aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(progress)}><div style={{ width: `${progress}%` }}/></div>
         </div>
-        {live && current?.focusDue && <div className="event-card"><span className="eyebrow">FOCUS INTERVAL COMPLETE</span><h3>Focus interval complete</h3><div className="event-actions"><button className="button primary" onClick={() => props.onBreak(live.cycles + 1 >= 4)}>Begin {live.cycles + 1 >= 4 ? 'long' : ''} break</button><button className="button subtle" onClick={props.onContinue}>Continue focus</button></div></div>}
-        {live && current?.breakDue && <div className="event-card"><span className="eyebrow">BREAK INTERVAL COMPLETE</span><h3>Break complete</h3><div className="event-actions"><button className="button primary" onClick={props.onFocus}>Begin focus</button><button className="button subtle" onClick={props.onFinish}>Finish session</button></div></div>}
+        {live && current?.focusDue && <div className="event-card"><h3>Focus interval complete</h3><div className="event-actions"><button className="button primary" onClick={() => props.onBreak(live.cycles + 1 >= 4)}>Begin {live.cycles + 1 >= 4 ? 'long' : ''} break</button><button className="button subtle" onClick={props.onContinue}>Continue focus</button></div></div>}
+        {live && current?.breakDue && <div className="event-card"><h3>Break complete</h3><div className="event-actions"><button className="button primary" onClick={props.onFocus}>Begin focus</button><button className="button subtle" onClick={props.onFinish}>Finish session</button></div></div>}
         {reminderDue && !current?.focusDue && <div className="reminder-card"><div><span className="eyebrow">BREAK REMINDER</span><p>Consider taking a break.</p></div><button className="text-button" onClick={props.onDismissReminder}>Dismiss</button></div>}
     <div className="timer-controls">{!live ? <button className="button primary start-button" onClick={props.onStart} disabled={!draft.trim()}><Play size={18} fill="currentColor"/> Start <ArrowRight size={18}/></button> : <>{isPaused ? <button className="button primary" onClick={props.onResume}><Play size={17} fill="currentColor"/> Resume</button> : <button className="button primary" onClick={props.onPause}><Pause size={17} fill="currentColor"/> Pause</button>}{inBreak ? <button className="button subtle" onClick={props.onFocus}><SkipForward size={17}/> Start focus</button> : <button className="button subtle" onClick={() => props.onBreak(live.cycles + 1 >= 4)}><RotateCcw size={16}/> Take a break</button>}<button className="button finish-button" onClick={props.onFinish}><Square size={14} fill="currentColor"/> Finish</button></>}</div>
       </div>

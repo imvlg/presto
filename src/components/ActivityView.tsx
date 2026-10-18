@@ -18,7 +18,6 @@ export function ActivityView({ sessions, onRename }: Props) {
   const bestDay = Math.max(0, ...daily.values())
 
   return <div className="screen-content">
-    <div className="page-heading"><span className="eyebrow">ACTIVITY</span></div>
     <div className="panel activity-heatmap"><Heatmap sessions={sessions} activity={chosen}/></div>
     <div className="activity-layout">
       <div className="panel activity-list-panel">
@@ -32,7 +31,6 @@ export function ActivityView({ sessions, onRename }: Props) {
         {!groups.length && <p className="empty-note">Start a focus session to see your activity patterns here.</p>}
       </div>
       <div className="panel activity-detail-panel">
-        <span className="eyebrow">{active ? 'ACTIVITY PROFILE' : 'OVERALL VIEW'}</span>
         <div className="detail-title-row"><h2>{active?.name ?? 'All recorded time'}</h2>{active && <button className="text-button" onClick={() => { setNewName(active.name); setRenaming(!renaming) }}><PenLine size={15}/> Rename</button>}</div>
         {renaming && active && <form className="rename-form" onSubmit={async event => { event.preventDefault(); if (newName.trim()) { await onRename(active.name, newName); setSelected(normalizeActivity(newName)); setRenaming(false) } }}>
           <label htmlFor="rename-activity">New activity name</label><div><input id="rename-activity" value={newName} onChange={event => setNewName(event.target.value)} maxLength={80}/><button className="button button-small" type="submit">Save name</button></div><small>If the name already exists, their histories merge.</small>
