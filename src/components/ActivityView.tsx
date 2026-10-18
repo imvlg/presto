@@ -18,7 +18,7 @@ export function ActivityView({ sessions, onRename }: Props) {
   const bestDay = Math.max(0, ...daily.values())
 
   return <div className="screen-content">
-    <div className="page-heading"><div><span className="eyebrow">ACTIVITY</span><h1>Activity</h1></div></div>
+    <div className="page-heading"><span className="eyebrow">ACTIVITY</span></div>
     <div className="panel activity-heatmap"><Heatmap sessions={sessions} activity={chosen}/></div>
     <div className="activity-layout">
       <div className="panel activity-list-panel">

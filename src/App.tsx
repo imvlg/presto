@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { Activity, BarChart3, Clock3, Download, History, Menu, Settings2, Timer, Upload, Volume2, VolumeX, X } from 'lucide-react'
 import { ActivityView } from './components/ActivityView'
 import { HistoryView } from './components/HistoryView'
+import { MetronomeMark } from './components/MetronomeMark'
 import { StatisticsView } from './components/StatisticsView'
 import { TimerView } from './components/TimerView'
 import { cleanActivity, defaultSettings, normalizeActivity, type LiveSession, type Mode, type Session, type Settings } from './lib/model'
@@ -11,11 +12,11 @@ import { playSound } from './lib/sound'
 import './styles.css'
 
 type Screen = 'timer' | 'activity' | 'statistics' | 'history'
-const nav: { id: Screen; label: string; icon: typeof Timer; index: string }[] = [
-  { id: 'timer', label: 'Timer', icon: Timer, index: '01' },
-  { id: 'activity', label: 'Activity', icon: Activity, index: '02' },
-  { id: 'statistics', label: 'Statistics', icon: BarChart3, index: '03' },
-  { id: 'history', label: 'History', icon: History, index: '04' },
+const nav: { id: Screen; label: string; icon: typeof Timer }[] = [
+  { id: 'timer', label: 'Timer', icon: Timer },
+  { id: 'activity', label: 'Activity', icon: Activity },
+  { id: 'statistics', label: 'Statistics', icon: BarChart3 },
+  { id: 'history', label: 'History', icon: History },
 ]
 
 export default function App() {
@@ -125,11 +126,6 @@ export default function App() {
       playSound('finish', settings)
     } catch { report('This session could not be saved. Please try again.') }
   }
-  const handleRate = (rating: number) => {
-    if (!completed) return
-    const record = { ...completed, rating }
-    void saveSession(record).then(() => { setCompleted(record); setSessions(previous => previous.map(item => item.id === record.id ? record : item)) }).catch(() => report('Rating could not be saved.'))
-  }
   const rename = async (oldName: string, newName: string) => {
     const clean = cleanActivity(newName)
     if (!clean) return
@@ -167,14 +163,13 @@ export default function App() {
 
   return <div className="app-shell">
     <aside className={`sidebar ${menuOpen ? 'mobile-open' : ''}`}>
-      <div className="brand"><div className="brand-symbol" aria-hidden="true"><i/><i/><i/></div><strong>presto</strong></div>
-      <div className="sidebar-section-label">NAVIGATION</div>
-      <nav aria-label="Main navigation">{nav.map(item => { const Icon = item.icon; return <button key={item.id} className={`nav-link ${screen === item.id ? 'active' : ''}`} onClick={() => chooseScreen(item.id)}><Icon size={18}/><span>{item.label}</span><small>{item.index}</small></button> })}</nav>
-      <div className="sidebar-bottom"><div className="sidebar-pulse"><span className="pulse-dot"/>{live ? `${live.phase === 'paused' ? 'PAUSED' : live.phase === 'break' ? 'ON BREAK' : 'FOCUSING'} · ${live.activity}` : 'READY'}</div><button className="settings-link" onClick={() => { setSettingsOpen(true); setMenuOpen(false) }}><Settings2 size={18}/> Settings</button></div>
+      <div className="brand"><MetronomeMark/><strong>presto</strong></div>
+      <nav aria-label="Main navigation">{nav.map(item => { const Icon = item.icon; return <button key={item.id} className={`nav-link ${screen === item.id ? 'active' : ''}`} onClick={() => chooseScreen(item.id)}><Icon size={18}/><span>{item.label}</span></button> })}</nav>
+      <div className="sidebar-bottom"><button className="settings-link" onClick={() => { setSettingsOpen(true); setMenuOpen(false) }}><Settings2 size={18}/> Settings</button></div>
     </aside>
     {menuOpen && <button className="mobile-scrim" aria-label="Close navigation" onClick={() => setMenuOpen(false)}/>}
-    <div className="workspace"><header className="topbar"><button className="mobile-menu icon-button" aria-label="Open navigation" onClick={() => setMenuOpen(true)}><Menu size={22}/></button><div className="breadcrumb"><span>PRESTO</span><span className="breadcrumb-slash">/</span><strong>{screen.toUpperCase()}</strong></div><div className="topbar-right"><span className="topbar-clock"><Clock3 size={14}/> {new Date(now).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}</span><button className="topbar-settings icon-button" aria-label="Open settings" onClick={() => setSettingsOpen(true)}><Settings2 size={18}/></button></div></header>
-      <main>{screen === 'timer' && <TimerView draft={draft} setDraft={setDraft} mode={mode} setMode={setMode} settings={settings} updateSettings={updateSettings} live={live} completed={completed} now={now} onStart={start} onPause={() => live && commitLive(pause(live))} onResume={() => live && commitLive(resume(live))} onBreak={long => live && commitLive(beginBreak(live, Date.now(), long))} onFocus={() => live && commitLive(beginFocus(live))} onContinue={() => live && commitLive(continueFocus(live))} onFinish={() => void handleFinish()} onNew={() => { setDraft(completed?.activity ?? ''); setCompleted(null) }} onHome={() => { setCompleted(null); setDraft('') }} onRate={handleRate} onDismissReminder={() => live && commitLive({ ...live, reminderDismissedAt: Date.now() })}/>}
+    <div className="workspace"><header className="topbar"><button className="mobile-menu icon-button" aria-label="Open navigation" onClick={() => setMenuOpen(true)}><Menu size={22}/></button><div className="topbar-right"><span className="topbar-clock"><Clock3 size={14}/> {new Date(now).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}</span><button className="topbar-settings icon-button" aria-label="Open settings" onClick={() => setSettingsOpen(true)}><Settings2 size={18}/></button></div></header>
+      <main>{screen === 'timer' && <TimerView draft={draft} setDraft={setDraft} mode={mode} setMode={setMode} settings={settings} updateSettings={updateSettings} live={live} completed={completed} now={now} onStart={start} onPause={() => live && commitLive(pause(live))} onResume={() => live && commitLive(resume(live))} onBreak={long => live && commitLive(beginBreak(live, Date.now(), long))} onFocus={() => live && commitLive(beginFocus(live))} onContinue={() => live && commitLive(continueFocus(live))} onFinish={() => void handleFinish()} onNew={() => { setDraft(completed?.activity ?? ''); setCompleted(null) }} onHome={() => { setCompleted(null); setDraft('') }} onDismissReminder={() => live && commitLive({ ...live, reminderDismissedAt: Date.now() })}/>}
         {screen === 'activity' && <ActivityView sessions={sessions} onRename={rename}/>}
         {screen === 'statistics' && <StatisticsView sessions={sessions}/>}
         {screen === 'history' && <HistoryView sessions={sessions} onDelete={remove}/>}</main>

@@ -152,3 +152,70 @@ h1,h2,h3{font-weight:500}
   .mode-card{min-height:54px}
   .timer-stage-footer{font-size:7px}
 }
+
+/* Rounded LCD forms and a restrained neon accent. */
+:root{
+  --lime:#b5ff59;
+  --mint:#90dbac;
+  --line:#303b33;
+  --line-soft:#27332a;
+}
+button:focus-visible,input:focus-visible{outline-color:var(--lime)}
+::selection{background:var(--lime);color:#0c100f}
+.brand{padding-bottom:65px}
+.metronome-mark{width:32px;height:32px;flex:none;color:var(--lime);filter:drop-shadow(0 0 5px #b5ff5933)}
+.brand strong{font-size:27px;font-weight:500;letter-spacing:-.08em;color:#edf0e9}
+.sidebar nav{gap:6px}
+.sidebar-bottom{border-top:1px solid var(--line);padding-top:15px}
+.topbar{justify-content:flex-end}
+.page-heading{margin-bottom:24px;min-height:21px;align-items:center}
+.page-heading .eyebrow,.page-heading>.eyebrow{font-size:12px;letter-spacing:.15em;font-weight:400;color:#c7d8c4;margin:0}
+.panel,.timer-aside,.metric-card,.history-panel{border-radius:14px}
+.timer-main{border-radius:15px}
+.timer-stage,.timer-stage.is-break{border-radius:18px;border-color:#3b5140;background:#111b13}
+.timer-stage.is-live{border-color:#6aa33f;box-shadow:inset 0 0 36px #b5ff5908}
+.timer-numbers,.timer-stage.is-break .timer-numbers{color:#c4ff85;text-shadow:0 0 30px #a9ff5044,0 0 70px #a9ff501a}
+.phase-indicator{color:#bddeaa}
+.phase-indicator i{background:var(--lime);box-shadow:0 0 12px #b5ff5999}
+.progress-track{background:#334837}
+.progress-track>div{background:var(--lime);box-shadow:0 0 13px #b5ff5988}
+.mode-card{border-radius:10px}
+.mode-card.selected{border-color:#85c846;background:#243724;color:#f2ffe9;box-shadow:inset 0 0 0 1px #b5ff5924}
+.mode-card.selected small{color:#b9dfad}
+.nav-link,.settings-link,.icon-button{border-radius:11px}
+.nav-link.active{border-color:#426342;background:#1e3122;color:#cfff9c}
+.nav-link:hover,.settings-link:hover{background:#1c2b20}
+.button{border-radius:11px}
+.button.primary{background:var(--lime);border-color:var(--lime);color:#18240e;box-shadow:0 0 24px #b5ff5924}
+.button.primary:hover:not(:disabled){background:#cbff81;box-shadow:0 0 28px #b5ff5940}
+.button.primary:disabled{box-shadow:none}
+.button.subtle{background:#1c2820}
+.event-card,.reminder-card,.segmented,.recovery-modal,.toast{border-radius:13px}
+.segmented button,.rating-buttons button{border-radius:9px}
+.segmented button.selected{background:#2d4827;color:#cfff9c}
+.metric-card.prominent{background:#1c2b1f;border-color:#547549}
+.metric-card.prominent .eyebrow{color:#b0dba0}
+.metric-card.prominent strong{color:#c8ff91;text-shadow:0 0 22px #a9ff5028}
+.context-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}
+.trend-bar{background:linear-gradient(0deg,#74b745,#b5ff59)}
+.heat-cell{border-radius:4px}
+.heat-cell.level-4{background:var(--lime)}
+.activity-row:hover,.activity-row.active,.history-row:hover{background:#1b2c1f;color:#d8ffc2}
+.history-focus{color:#c2ff88}
+.history-detail{background:#1b2a1e;border-radius:0 0 11px 11px}
+.history-empty{border-radius:0 0 13px 13px}
+.completion-focus strong{color:#c4ff85;text-shadow:0 0 30px #a9ff5033}
+.completion-actions{margin-top:33px}
+.settings-drawer{border-radius:16px 0 0 16px}
+.custom-durations input,.number-setting input,.rename-form input{border-radius:9px}
+.toggle-row input{background:#3b493d}
+.toggle-row input:checked{background:#5a8d38}
+.toggle-row input:checked:after{background:var(--lime)}
+@media(max-width:740px){
+  .mobile-menu{margin-right:auto}
+  .screen-content{padding-top:31px}
+  .page-heading{margin-bottom:20px}
+  .timer-stage,.timer-stage.is-break{border-radius:15px}
+  .settings-drawer{border-radius:0}
+}
+@media(max-width:500px){.context-metrics{grid-template-columns:1fr}}

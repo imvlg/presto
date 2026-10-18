@@ -9,7 +9,7 @@ interface Props {
   live: LiveSession | null; completed: Session | null; now: number
   onStart: () => void; onPause: () => void; onResume: () => void
   onBreak: (long: boolean) => void; onFocus: () => void; onContinue: () => void
-  onFinish: () => void; onNew: () => void; onHome: () => void; onRate: (rating: number) => void
+  onFinish: () => void; onNew: () => void; onHome: () => void
   onDismissReminder: () => void
 }
 
@@ -40,12 +40,11 @@ export function TimerView(props: Props) {
     <h1>Session complete</h1><p className="completion-subtitle"><strong>{completed.activity}</strong> · Saved to history</p>
     <div className="completion-focus"><span>FOCUSED TIME</span><strong>{formatDuration(completed.focusMs, true)}</strong></div>
     <div className={`completion-details ${completed.awayMs ? 'with-away' : ''}`}><div><span>MANUALLY PAUSED</span><strong>{formatCompact(completed.pausedMs)}</strong></div><div><span>SCHEDULED BREAK</span><strong>{formatCompact(completed.breakMs)}</strong></div>{Boolean(completed.awayMs) && <div><span>AWAY / UNTRACKED</span><strong>{formatCompact(completed.awayMs ?? 0)}</strong></div>}<div><span>TOTAL ELAPSED</span><strong>{formatCompact(completed.endedAt - completed.startedAt)}</strong></div></div>
-    <div className="rating-area"><span className="eyebrow">FOCUS RATING · OPTIONAL</span><div className="rating-buttons" role="group" aria-label="Optional focus rating">{[1,2,3,4,5].map(rating => <button key={rating} className={completed.rating === rating ? 'rated' : ''} aria-pressed={completed.rating === rating} aria-label={`Rate focus ${rating} out of 5`} onClick={() => props.onRate(rating)}>{rating}</button>)}</div></div>
     <div className="completion-actions"><button className="button primary completion-next" onClick={props.onNew}>Start another session <ArrowRight size={18}/></button><button className="button subtle" onClick={props.onHome}>Return to timer</button></div>
   </div>
 
   return <div className="screen-content timer-screen">
-    <div className="page-heading timer-heading"><div><span className="eyebrow">FOCUS TIMER</span><h1>presto</h1></div></div>
+    <div className="page-heading timer-heading"><span className="eyebrow">FOCUS TIMER</span></div>
     <div className="timer-layout">
       <div className="timer-main panel">
         <div className="timer-topline"><span className="eyebrow">ACTIVITY</span></div>
