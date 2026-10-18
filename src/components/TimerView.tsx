@@ -1,6 +1,7 @@
 import { ArrowRight, Pause, Play, RotateCcw, SkipForward, Square } from 'lucide-react'
 import { displayed } from '../lib/timer'
 import { formatCompact, formatDuration, modeDurations, modeNames, type LiveSession, type Mode, type Session, type Settings } from '../lib/model'
+import { NumberStepper } from './NumberStepper'
 
 interface Props {
   draft: string; setDraft: (value: string) => void
@@ -50,7 +51,7 @@ export function TimerView(props: Props) {
         <div className="timer-topline"><span className="eyebrow">ACTIVITY</span></div>
         <label className="sr-only" htmlFor="activity-name">What are you doing?</label>
         <input id="activity-name" className="activity-input" placeholder="What are you doing?" value={live ? live.activity : draft} onChange={event => setDraft(event.target.value)} disabled={Boolean(live)} maxLength={80} autoComplete="off" onKeyDown={event => { if (event.key === 'Enter' && !live && draft.trim()) props.onStart() }}/>
-        {!live && <><div className="mode-heading"><span className="eyebrow">MODE</span></div><div className="mode-grid">{modes.map(item => <button key={item.id} className={`mode-card ${mode === item.id ? 'selected' : ''}`} onClick={() => setMode(item.id)} aria-pressed={mode === item.id}><strong>{item.title}</strong><small>{item.detail}</small></button>)}</div>{mode === 'custom' && <div className="custom-durations"><label>Focus <input type="number" min="1" max="240" value={settings.customFocusMinutes} onChange={event => updateSettings({ customFocusMinutes: Number(event.target.value) })}/> min</label><label>Break <input type="number" min="1" max="90" value={settings.customBreakMinutes} onChange={event => updateSettings({ customBreakMinutes: Number(event.target.value) })}/> min</label></div>}</>}
+        {!live && <><div className="mode-heading"><span className="eyebrow">MODE</span></div><div className="mode-grid">{modes.map(item => <button key={item.id} className={`mode-card ${mode === item.id ? 'selected' : ''}`} onClick={() => setMode(item.id)} aria-pressed={mode === item.id}><strong>{item.title}</strong><small>{item.detail}</small></button>)}</div>{mode === 'custom' && <div className="custom-durations"><div className="custom-duration"><label htmlFor="custom-focus">Focus</label><NumberStepper id="custom-focus" label="Focus minutes" value={settings.customFocusMinutes} min={1} max={240} onChange={value => updateSettings({ customFocusMinutes: value })}/><span>min</span></div><div className="custom-duration"><label htmlFor="custom-break">Break</label><NumberStepper id="custom-break" label="Break minutes" value={settings.customBreakMinutes} min={1} max={90} onChange={value => updateSettings({ customBreakMinutes: value })}/><span>min</span></div></div>}</>}
         <div className={`timer-stage ${live ? 'is-live' : ''} ${inBreak ? 'is-break' : ''}`}>
           <div className="timer-stage-header"><span className="phase-indicator" aria-live="polite"><i/>{phaseLabel}</span><span className="timer-index">{modeNames[live?.mode ?? mode].toUpperCase()}</span></div>
           <div className="timer-numbers" aria-live="off">{formatDuration(timerValue, live?.mode === 'flow' || timerValue >= 60 * 60_000)}</div>

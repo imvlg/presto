@@ -219,3 +219,23 @@ button:focus-visible,input:focus-visible{outline-color:var(--lime)}
   .settings-drawer{border-radius:0}
 }
 @media(max-width:500px){.context-metrics{grid-template-columns:1fr}}
+
+/* Backlit controls for numeric settings. */
+.custom-durations{flex-wrap:wrap}
+.custom-duration{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:12px}
+.custom-duration>label{color:var(--muted)}
+.custom-duration>span,.number-setting-control>span{color:#95a995;font-size:11px}
+.number-setting-control{display:flex;align-items:center;gap:8px}
+.number-stepper{display:inline-flex;align-items:stretch;height:39px;border:1px solid #4a6848;border-radius:10px;overflow:hidden;background:#17241b;box-shadow:inset 0 0 13px #b5ff5908;transition:border-color .18s,box-shadow .18s}
+.number-stepper:hover,.number-stepper:focus-within{border-color:#91d557;box-shadow:inset 0 0 14px #b5ff5915,0 0 13px #b5ff5926}
+.number-stepper input,.custom-durations .number-stepper input,.number-setting .number-stepper input{appearance:textfield;-moz-appearance:textfield;width:49px;min-width:0;height:100%;margin:0;padding:0 5px;border:0;border-radius:0;background:transparent;color:#d5ffae;text-align:center;font-family:'Space Mono',Consolas,monospace;font-size:13px;font-variant-numeric:tabular-nums;outline:none}
+.number-stepper input::-webkit-inner-spin-button,.number-stepper input::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+.number-stepper input:focus-visible{outline:none}
+.stepper-buttons{display:flex;flex-direction:column;width:27px;border-left:1px solid #3d5a3a}
+.stepper-buttons button{display:grid;place-items:center;flex:1;width:27px;min-height:0;padding:0;border:0;border-radius:0;background:#203522;color:#b5ff59;transition:background .16s,color .16s,box-shadow .16s}
+.stepper-buttons button+button{border-top:1px solid #3d5a3a}
+.stepper-buttons button:hover:not(:disabled),.stepper-buttons button:focus-visible{background:#355a2c;color:#e5ffcb;box-shadow:inset 0 0 13px #b5ff594d,0 0 12px #b5ff5966;outline:none}
+.stepper-buttons button:active:not(:disabled){background:#b5ff59;color:#17241b;box-shadow:0 0 18px #b5ff5980}
+.stepper-buttons button:focus-visible{outline:2px solid var(--lime);outline-offset:-2px}
+.stepper-buttons button:disabled{opacity:.35}
+@media(max-width:390px){.number-setting{align-items:flex-start;gap:8px;flex-wrap:wrap}.number-setting-control{margin-left:auto}}
